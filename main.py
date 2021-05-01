@@ -161,7 +161,7 @@ def respond(voice_data):
             atlas_speak("Here is your home page on Youtube")
 
         elif 'you created' in voice_data:
-            atlas_speak("I was completed on the 27th of December 2020")
+            atlas_speak("I was first created on the 27th of December 2020")
 
         elif 'open Steam' in voice_data or 'start Steam' in voice_data:
             subprocess.Popen('D:\\ProgramFiles\\steam.exe')
