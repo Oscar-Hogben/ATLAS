@@ -195,6 +195,15 @@ def respond(voice_data):
             print(final)
             atlas_speak(final)
 
+        elif 'restart' in voice_data:
+            if '1968' in voice_data:
+                atlas_speak("Restarting")
+                atlas_speak("Warning, restarting may create errors in further restarting or the exit command")
+                os.execv(sys.executable, ['python'] + sys.argv)
+                exit()
+            else:
+                atlas_speak("You must include the admin password")
+
 
         #elif 'x' in voice_data:
             #var = voice_data.find('x')
