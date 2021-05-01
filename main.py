@@ -12,7 +12,7 @@ import pyttsx3
 
 print("Program Started")
 
-def atlas_speak(audio_string):
+def atlas_speak1(audio_string):
     engine = pyttsx3.init() # object creation
 
     """ RATE"""
@@ -60,7 +60,7 @@ def record_audio(ask = False):
         return voice_data
 
 
-def atlas_speak1(audio_string):
+def atlas_speak(audio_string):
     tts = gTTS(text=audio_string, lang='en')
     r = random.randint(1, 10000000)
     audio_file = 'audio-' + str(r) + ('.mp3')
@@ -235,12 +235,8 @@ time.sleep(1)
 loop = 0
 while 1:
     r = sr.Recognizer()
-    if loop >= 4:
-        os.execv(sys.executable, ['python'] + sys.argv)
-        exit()
-    else: 
-        print("How can I help you?")
-        loop = loop + 1
-        voice_data = record_audio()
-        print(voice_data)
-        respond(voice_data)
+    print("How can I help you?")
+    loop = loop + 1
+    voice_data = record_audio()
+    print(voice_data)
+    respond(voice_data)
