@@ -80,7 +80,7 @@ def respond(voice_data):
             atlas_speak("An unexpected error occurred")
             os.execv(sys.executable, ['python'] + sys.argv)
             exit()
-        voice_data = voice_data[position:9999999999999999999999999999999999999999999999999999999999999]
+        voice_data = voice_data[position:]
         print(position)
         if 'stop' in voice_data:
             print("Ok")
