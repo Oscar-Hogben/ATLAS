@@ -9,8 +9,17 @@ import sys
 from gtts import gTTS
 from time import ctime
 import pyttsx3
+import requests
+import json
 
 print("Program Started")
+
+def load_config():
+    with open('config.json') as json_file:
+        data = json.load(json_file)
+    return data
+
+load_config()
 
 def atlas_speak1(audio_string):
     engine = pyttsx3.init() # object creation
@@ -175,6 +184,19 @@ def respond(voice_data):
         elif 'open Kerbal' in voice_data or 'start Kerbal' in voice_data:
             subprocess.Popen('D:\\ProgramFiles\\steamapps\\common\\Kerbal Space Program\\Launcher.exe')
             atlas_speak("Opening Kerbal Space Program")
+
+        elif 'reminder' in voice_data:
+            config = load_config()
+            print(config["ifttt_api_key"])
+
+            find = voice_data.find('reminder')
+            reminder = voice_data[find+9:]
+            print(reminder)
+            atlas_speak("Setting reminder now")
+            task = {"value1": reminder}
+            resp = requests.post('https://maker.ifttt.com/trigger/reminder/with/key/' + config["ifttt_api_key"], json=task)
+            atlas_speak("Success")
+            print(resp)
 
         elif '+' in voice_data:
             var = voice_data.find('+')
