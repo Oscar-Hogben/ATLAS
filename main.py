@@ -11,6 +11,9 @@ from time import ctime
 import pyttsx3
 import requests
 import json
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
 
 print("Program Started")
 
@@ -50,6 +53,7 @@ def atlas_speak1(audio_string):
 
 def record_audio(ask = False):
     with sr.Microphone() as source:
+        r.adjust_for_ambient_noise(source)
         if ask:
             atlas_speak(ask)
         audio = r.listen(source)
@@ -80,6 +84,7 @@ def atlas_speak(audio_string):
     
 
 def respond(voice_data):
+
     if 'atlas' in voice_data or 'Atlas' in voice_data:
         if 'Atlas' in voice_data:
             position = voice_data.find('Atlas')
@@ -108,7 +113,7 @@ def respond(voice_data):
         elif 'your name' in voice_data:
             atlas_speak("My name is ATLAS")
 
-        elif 'time' in voice_data:
+        elif ' time ' in voice_data:
             var1 = ctime().find(':')
             hour = ctime()[var1-3:var1]
             mins = ctime()[var1+1:var1+3]
@@ -117,12 +122,12 @@ def respond(voice_data):
 
             if int(hour) > 12:
                 hour = int(hour) - 12
-                time = str(hour) + ':' + mins + ' pm'
+                timeRn = str(hour) + ':' + mins + ' pm'
 
             elif int(hour) <= 12:
-                time = hour + ':' + mins + ' am'
+                timeRn = hour + ':' + mins + ' am'
             
-            final = 'The time is: ' + time
+            final = 'The time is: ' + timeRn
             atlas_speak(str(final))
 
         elif 'search' in voice_data or ('look' in voice_data and 'up' in voice_data):
@@ -150,7 +155,7 @@ def respond(voice_data):
             webbrowser.get().open(url)
             atlas_speak("Here is your gmail")
 
-        elif 'play' in voice_data and 'Spotify' in voice_data:
+        elif 'play my main playlist' in voice_data:
             url = 'https://open.spotify.com/playlist/5rpqS0ZzdDiBff0NTaFXdM'
             webbrowser.get().open(url)
             atlas_speak("Here is your main playlist on spotify")
@@ -193,9 +198,89 @@ def respond(voice_data):
             reminder = voice_data[find+9:]
             print(reminder)
             atlas_speak("Setting reminder now")
-            task = {"value1": reminder}
-            resp = requests.post('https://maker.ifttt.com/trigger/reminder/with/key/' + config["ifttt_api_key"], json=task)
-            atlas_speak("Success")
+        
+        elif 'set' and 'timer' in voice_data:
+            length = record_audio('How long would you like the timer to be?')
+            seconds = 0
+
+            hours = length.find('hour')
+            plural = False
+            if int(hours) == -1:
+                hours = length.find('hours')
+                plural = True
+            
+            if int(hours) != -1:
+                hours = length[0:int(hours)-1]
+                print(str(hours) + " hours")
+                hours = int(hours)
+                seconds = hours * 3600 + seconds
+                if plural == False:
+                    length = length[(length.find('hour'))+6:]
+                elif plural == True:
+                    length = length[(length.find('hours'))+7:]
+                print(length)
+            
+            mins = length.find('minutes')
+            plural = True
+            if int(mins) == -1:
+                mins = length.find('minute')
+                plural = False
+            
+            if int(mins) != -1:
+                mins = length[0:int(mins)-1]
+                print(str(mins) + " mins")
+                mins = int(mins)
+                seconds = mins * 60 + seconds
+                if plural == False:
+                    length = length[(length.find('minute'))+7:]
+                elif plural == True:
+                    length = length[(length.find('minutes'))+8:]
+                print(length)
+
+            secs = length.find('seconds')
+            plural = True
+            if int(secs) == -1:
+                secs = length.find('second')
+                plural = False
+            
+            if int(secs) != -1:
+                secs = length[0:int(secs)-1]
+                print(str(secs) + " secs")
+                secs = int(secs)
+                seconds = secs + seconds
+                if plural == False:
+                    length = length[(length.find('second'))+8:]
+                elif plural == True:
+                    length = length[(length.find('seconds'))+9:]
+                print(length)
+            print(seconds)
+
+            timeEnding = seconds + time.time()
+
+            ending = open("timerEnding", "w")
+            ending.write(str(timeEnding))
+            ending.close()
+
+            timerOn = open("timerOn", "w")
+            timerOn.write("True")
+            timerOn.close()
+
+            atlas_speak('Starting your timer now')
+            
+
+            
+            
+            
+        elif 'play Spotify' in voice_data:
+            config = load_config()
+            resp = requests.get('https://maker.ifttt.com/trigger/spotify/with/key/' + config["ifttt_api_key"])
+            atlas_speak("Playing your spotify")
+            print(resp)
+        
+        elif 'pause Spotify' in voice_data:
+            config = load_config()
+            resp = requests.get('https://maker.ifttt.com/trigger/spotifypause/with/key/' + config["ifttt_api_key"])
+            atlas_speak("Pausing your spotify")
             print(resp)
 
         elif '+' in voice_data:
@@ -227,14 +312,14 @@ def respond(voice_data):
                 atlas_speak("You must include the admin password")
 
 
-        #elif 'x' in voice_data:
-            #var = voice_data.find('x')
-            #num1 = float(voice_data[6:var])
-            #num2 = float(voice_data[var+1:var+999999999999])
-            #num3 = num1 * num2
-            #final = str(num1) + " times " + str(num2) + " equals " + str(round(num3,2))
-            #print(final)
-            #atlas_speak(final)
+        elif ' x ' in voice_data:
+            var = voice_data.find('x')
+            num1 = float(voice_data[6:var])
+            num2 = float(voice_data[var+1:var+999999999999])
+            num3 = num1 * num2
+            final = str(num1) + " times " + str(num2) + " equals " + str(round(num3,2))
+            print(final)
+            atlas_speak(final)
 
 
         elif '/' in voice_data:
@@ -264,6 +349,7 @@ def respond(voice_data):
 
 time.sleep(1)
 loop = 0
+
 while 1:
     r = sr.Recognizer()
     print("How can I help you?")
@@ -271,3 +357,19 @@ while 1:
     voice_data = record_audio()
     print(voice_data)
     respond(voice_data)
+    
+    timerEndingFile = open("timerEnding", "r")
+    timerOnFile = open("timerOn", "r")
+
+    timerEnding = float(timerEndingFile.read())
+    timerOn = timerOnFile.read()
+    
+
+    if timerEnding <= time.time() and timerOn == "True":
+        atlas_speak("Timer finished!")
+        timerOnFile.close()
+        timerEndingFile.close()
+        timerOn = open("timerOn", "w")
+        timerOn.write("False")
+        timerOn.close()
+    
